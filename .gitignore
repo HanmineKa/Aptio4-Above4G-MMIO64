@@ -1,0 +1,10 @@
+/BIOS/
+/UEFITool/
+/docs/
+/.github/skills/
+*.efi
+*.obj
+/detect-tests
+/detect-tests.exe
+/action-tests
+/action-tests.exe

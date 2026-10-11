@@ -1,0 +1,42 @@
+## @file
+# Above 4G Decoding profile dispatcher DXE driver.
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = Aptio4Above4GDriver
+  FILE_GUID                      = 3D2B55E1-8AF3-4CB3-A291-B3244BA351D9
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = UefiMain
+
+[Sources]
+  Above4GDriver.c
+  Above4GPlatformServicesProtocol.h
+  actions/action_api.h
+  actions/gen23.c
+  actions/gen4.c
+  actions/gen5.c
+  ../detect/detect.c
+  ../detect/detect.h
+
+[Packages]
+  driver/Above4GPkg.dec
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseMemoryLib
+  DebugLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
+
+[Guids]
+  gAptio4Above4GVariableGuid
+
+[Protocols]
+  gAptio4Above4GPlatformServicesProtocolGuid
+
+[Depex]
+  TRUE

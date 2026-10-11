@@ -1,0 +1,9 @@
+# Profile Actions
+
+These modules are standalone C action plans. They are not connected to UEFI services or a DXE driver yet. Platform operations are supplied through callbacks so tests can mock every external call.
+
+The Gen 2-3 `get_memory_space_map` callback must call the real DXE `GetMemorySpaceMap` in a future adapter and return `safe_to_enable = true` only after a conservative, documented preflight. Return an error or `false` if the map is unavailable, ambiguous, or indicates allocation risk. The research does not define a complete generic preflight algorithm, so do not replace this gate with a chipset-name assumption.
+
+Protocol adapters must validate the vendor interface layout and expose `policy_data` as the policy object reached through the verified pointer at interface offset `+0x28`. They must set `declared_size` from the verified protocol contract and ensure the payload bounds are valid before returning success.
+
+Gen 4 uses a conservative 4 GiB window and rolls the GCD range back if attribute setup or hook installation fails. The hook installer must be atomic: on failure it leaves the original function installed; on success it stores the original function and context in the caller-owned hook context. That context must outlive the installed hook. The patch callback is called first as a gate. `gen4_notify_phase_patch_placeholder` always returns `ACTION_STATUS_UNSUPPORTED` and never changes the supplied module bytes. The unit test uses a mock gate to cover orchestration only; this does not validate or perform a real byte patch. A human must review any implementation of that patch before hardware use.
