@@ -26,6 +26,13 @@ cc -std=c99 -Wall -Wextra -Werror -pedantic driver/actions/gen23.c driver/action
 ./action-tests
 ```
 
+Build and run the platform-provider helper tests with GCC or Clang. These use a fake FV2 service table and do not require EDK II or firmware:
+
+```sh
+cc -std=c99 -Wall -Wextra -Werror -pedantic driver/platform/platform_testable.c driver/platform/tests/test_platform.c -o platform-tests
+./platform-tests
+```
+
 With MSVC, run from a Developer PowerShell for Visual Studio:
 
 ```powershell
@@ -37,7 +44,7 @@ cl /nologo /W4 /WX /TC /std:c11 driver\actions\gen23.c driver\actions\gen5.c dri
 
 ## EDK II DXE Build (WSL2 Ubuntu)
 
-The verified build used EDK II `edk2-stable202608` and the `GCC` toolchain tag. Keep the upstream checkout under the Linux filesystem and expose this repository as a separate package path. On this checkout, BaseTools and MdePkg also require their pinned Brotli and MipiSysTLib submodules.
+The X64 DEBUG provider build was verified with EDK II `edk2-stable202608` and the `GCC` toolchain tag. Keep the upstream checkout under the Linux filesystem and expose this repository as a separate package path. On this checkout, BaseTools and MdePkg require their pinned Brotli and MipiSysTLib submodules.
 
 Install prerequisites if missing:
 
@@ -54,15 +61,19 @@ git clone https://github.com/tianocore/edk2.git ~/edk2-workspace/edk2
 cd ~/edk2-workspace/edk2
 git checkout edk2-stable202608
 git submodule update --init BaseTools/Source/C/BrotliCompress/brotli MdePkg/Library/MipiSysTLib/mipisyst
-export PACKAGES_PATH="$PWD:/mnt/c/Users/kerion/OneDrive/Documents/Aptio4-Above4G-MMIO64"
+export REPO=/mnt/c/Users/kerion/OneDrive/Documents/Aptio4-Above4G-MMIO64
+export PACKAGES_PATH="$PWD:$REPO"
 source edksetup.sh
 make -C BaseTools
 ```
 
-Build the X64 DEBUG DXE module:
+Build the platform-services provider for X64 DEBUG:
 
 ```sh
-build -p driver/Above4GPlatform.dsc -m driver/Above4GDriver.inf -a X64 -t GCC -b DEBUG
+cd "$REPO"
+export WORKSPACE=$REPO
+export PACKAGES_PATH="$HOME/edk2-workspace/edk2:$REPO"
+build -p driver/Above4GPlatform.dsc -m driver/platform/Above4GPlatform.inf -a X64 -t GCC -b DEBUG
 ```
 
-The module output is `Build/Aptio4Above4G/DEBUG_GCC/X64/Aptio4Above4GDriver.efi` inside the EDK II checkout. This is a standalone DXE image only: there is no board platform-services provider or firmware-volume integration in this repository, and no BIOS image is modified.
+The provider output is `Build/Aptio4Above4G/DEBUG_GCC/X64/Aptio4Above4GPlatform.efi` in this repository. The provider and dispatcher are standalone DXE images; they are not integrated into a board firmware volume, and no BIOS image is modified. A successful build does not verify dispatch timing, firmware ABI assumptions, profile behavior, or hardware operation. The Gen 2-3 preflight intentionally rejects activation, and Gen 4 remains blocked by its manual-review byte-patch placeholder.
