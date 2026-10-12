@@ -1,6 +1,10 @@
 /BIOS/
 /UEFITool/
-/docs/
+/Build/
+/docs/*
+!/docs/spec.md
+!/docs/driver-variables.md
+!/docs/Instruksi AI Agent — Scaffolding & Modul Deteksi.md
 /.github/skills/
 *.efi
 *.obj
