@@ -1,0 +1,51 @@
+## @file
+# Aptio 4 firmware-volume and UEFI-services provider for Above4G.
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = Aptio4Above4GPlatform
+  FILE_GUID                      = 881BDA45-51DB-431B-8E55-4C9D239D4D27
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = Above4GPlatformEntryPoint
+
+[Sources]
+  Above4GPlatform.c
+  platform_testable.c
+  ../Above4GPlatformServicesProtocol.h
+  ../actions/action_api.h
+  ../actions/gen4.c
+  ../actions/gen23.c
+  ../actions/gen5.c
+  ../../detect/detect.c
+  ../../detect/detect.h
+
+[Packages]
+  driver/Above4GPkg.dec
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DxeServicesTableLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
+
+[Guids]
+  gAptio4Above4GVariableGuid
+
+[Protocols]
+  gAptio4Above4GPlatformServicesProtocolGuid
+  gAptio4Above4GGen23PolicyProtocolGuid
+  gAptio4Above4GGen5PolicyProtocolGuid
+  gEfiFirmwareVolume2ProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiPciHostBridgeResourceAllocationProtocolGuid
+  gEfiPciRootBridgeIoProtocolGuid
+
+[Depex]
+  gEfiPciHostBridgeResourceAllocationProtocolGuid
+  END

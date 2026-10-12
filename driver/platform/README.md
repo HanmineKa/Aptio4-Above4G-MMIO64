@@ -1,0 +1,17 @@
+# DXE Platform Provider
+
+The provider first reads `Above4GEnabled` under the private variable GUID. Unless the value is exactly `1`, it returns without FV or PCI probing and does not install the platform-services protocol. When enabled, it extracts `PciHostBridge` and `NbDxe` PE32 sections from the FV2 instance on the provider's loaded-image device handle. It accepts exactly one FFS file with each matching UI section name; missing or ambiguous sections fail closed. The extracted buffers remain allocated while the provider protocol is installed. TOUUD is read from PCI segment 0, bus 0, device 0, function 0, offset `0xA8`; inability to read it leaves the value unset and causes the Gen 2-3 preflight to reject activation.
+
+The provider's static DEPEX requires the PCI host bridge resource-allocation protocol. After reading the FV modules, Gen 2-3 and Gen 5 wait through runtime protocol notification for their matching NbDxe policy protocol before publishing platform services. Gen 4 and unknown profiles have no policy GUID and may publish services once the host bridge protocol is available. `Above4GDriver.inf` can therefore keep its protocol-notification dispatch.
+
+The policy adapter reads the first byte at the policy payload reached through interface offset `+0x28`; it passes that actual byte as `declared_size` and rejects values below 10 for Gen 2-3 or 9 for Gen 5. The separate payload-size bound only guards the required `+0x11`/`+0x20` access. A passing revision byte does not establish the complete ABI or offset layout for an unreviewed firmware build.
+
+This dependency arrangement does not, by itself, prove that the provider and action complete before `PciBus` begins enumeration on every AMI image. That ordering must be confirmed against the exact target's `PciBus` module and dispatch dependencies before the provider is used; it is not verified in this workspace.
+
+Gen 2-3 calls the real DXE GCD map service, checks descriptor bounds and the planned upper-window overlap, then deliberately reports the preflight as unsafe. DXE Services allocates the map returned by `GetMemorySpaceMap`; the provider releases it after inspection. A valid GCD map cannot rule out the vendor's documented allocation-failure infinite loop. Do not enable this profile until a build-specific preflight that addresses that failure mode has been reviewed.
+
+The Gen 4 GCD callbacks call DXE Services, and the allocation-attributes adapter preserves and wraps the located host bridge method. The action's byte-patch callback remains the explicit unsupported placeholder, which runs before any Gen 4 GCD or hook operation. Consequently, Gen 4 currently reports manual review and performs no platform mutation. No byte offset is inferred from a runtime GUID.
+
+The pure helper logic used for UI-name matching, FV2 file enumeration, range overlap, and one-time hook-slot replacement has host-only tests in `tests/test_platform.c`. The mock FV2 service table supplies synthetic FFS names and PE32 bytes; tests require only a C99 compiler, not EDK II or firmware.
+
+The provider built successfully as an X64 DEBUG DXE image with EDK II `edk2-stable202608` and `GCC`. Runtime FV layout, policy ABI, dispatch order relative to `PciBus`, and hardware effects remain unverified; do not flash or test on a production board.

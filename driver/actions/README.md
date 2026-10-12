@@ -2,7 +2,7 @@
 
 These modules are standalone C action plans. They are not connected to UEFI services or a DXE driver yet. Platform operations are supplied through callbacks so tests can mock every external call.
 
-The Gen 2-3 `get_memory_space_map` callback must call the real DXE `GetMemorySpaceMap` in a future adapter and return `safe_to_enable = true` only after a conservative, documented preflight. Return an error or `false` if the map is unavailable, ambiguous, or indicates allocation risk. The research does not define a complete generic preflight algorithm, so do not replace this gate with a chipset-name assumption.
+The Gen 2-3 `get_memory_space_map` callback calls the real DXE `GetMemorySpaceMap`. The provider validates descriptor bounds and rejects any overlap with the vendor's planned 16 GiB window at `max(4 GiB, TOUUD)`. This check is necessary to predict whether the vendor's later `AddMemorySpace` can succeed, but it cannot establish that later PCI I/O/MEM32 allocations will succeed. Because the Gen 2-3 host bridge hangs indefinitely on any allocation failure and the research supplies no validated way to rule that out, the current callback always returns `safe_to_enable = false`. Do not relax this final fail-closed gate based on chipset name or map shape alone; it needs a reviewed, build-specific preflight policy.
 
 Protocol adapters must validate the vendor interface layout and expose `policy_data` as the policy object reached through the verified pointer at interface offset `+0x28`. They must set `declared_size` from the verified protocol contract and ensure the payload bounds are valid before returning success.
 
